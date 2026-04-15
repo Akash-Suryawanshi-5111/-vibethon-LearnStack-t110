@@ -5,6 +5,7 @@ import { ArrowLeft, CheckCircle2, Play } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 
 // Mock content for demonstration
+// Mock content for demonstration
 const MODULE_CONTENT: Record<string, any> = {
   'intro-ml': {
     title: 'Introduction to Machine Learning',
@@ -16,6 +17,45 @@ const MODULE_CONTENT: Record<string, any> = {
       {
         title: 'Types of Machine Learning',
         content: 'There are three main types: Supervised Learning (labeled data), Unsupervised Learning (unlabeled data), and Reinforcement Learning (learning by trial and error).',
+      }
+    ]
+  },
+  'decision-trees': {
+    title: 'Decision Trees & Random Forests',
+    sections: [
+      {
+        title: 'What is a Decision Tree?',
+        content: 'A decision tree is a flowchart-like structure in which each internal node represents a "test" on an attribute, each branch represents the outcome of the test, and each leaf node represents a class label or decision.',
+      },
+      {
+        title: 'Random Forests',
+        content: 'A random forest is an ensemble learning method that constructs a multitude of decision trees at training time and outputs the class that is the mode of the classes or mean prediction of the individual trees.',
+      }
+    ]
+  },
+  'neural-networks': {
+    title: 'Neural Networks Basics',
+    sections: [
+      {
+        title: 'The Perceptron',
+        content: 'A perceptron is the fundamental unit of a neural network. It takes multiple inputs, applies weights to them, passes them through an activation function, and produces an output.',
+      },
+      {
+        title: 'Hidden Layers',
+        content: 'Hidden layers sit between the input and output layers. They allow the neural network to learn complex, non-linear patterns by applying activation functions like ReLU or Sigmoid.',
+      }
+    ]
+  },
+  'cnn': {
+    title: 'Convolutional Neural Networks',
+    sections: [
+      {
+        title: 'How AI Sees Images',
+        content: 'CNNs use convolutional layers to scan images with tiny filters (kernels). This helps the network detect features like edges, textures, and eventually complex objects like faces or cars.',
+      },
+      {
+        title: 'Pooling Layers',
+        content: 'Pooling layers reduce the spatial dimensions (width and height) of the image representation, which reduces the number of parameters and computation in the network while retaining important features.',
       }
     ]
   }
