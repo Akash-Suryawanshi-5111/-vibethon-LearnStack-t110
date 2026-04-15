@@ -1,20 +1,41 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# 🚀 AIML Play - Interactive AI/ML Learning Platform
 
-# Run and deploy your AI Studio app
+### 🌐 Live Demo: [https://gen-lang-client-0415961174.web.app](https://gen-lang-client-0415961174.web.app)
 
-This contains everything you need to run your app locally.
+AIML Play is a gamified, interactive educational platform designed to take users from AI beginners to practitioners through hands-on simulations, coding sandboxes, and competitive learning.
 
-View your app in AI Studio: https://ai.studio/apps/f7c0e156-e8ff-4a1a-b7e5-119346ff7140
+---
 
-## Run Locally
+## ✨ Features
 
-**Prerequisites:**  Node.js
+* **Interactive Simulations**: Real-world AI applications including Spam Detection and Computer Vision (Smart Pet Door).
+* **Concept Mastery Games**: 
+    * **Decision Tree Builder**: Visualize Gini Impurity and data splitting.
+    * **Neural Network Game**: Manually tune weights and biases using sigmoid activation.
+    * **Classification Game**: Draw decision boundaries to separate data points.
+* **Algorithm Sandbox**: A live JavaScript playground to write and test custom classification logic.
+* **Gamified Learning**: Earn XP, level up your profile, and compete on the global leaderboard.
+* **Structured Curriculum**: Comprehensive modules covering Intro to ML, Decision Trees, Neural Networks, and CNNs.
 
+---
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## 🛠️ Tech Stack
+
+* **Frontend**: React (Vite), Tailwind CSS, Framer Motion.
+* **Icons**: Lucide React.
+* **Backend/Auth**: Firebase (Authentication, Firestore).
+* **State Management**: Zustand.
+
+---
+
+## 🚀 Basic Setup & Installation
+
+Follow these steps to run the project locally:
+
+### 1. Prerequisites
+Ensure you have [Node.js](https://nodejs.org/) installed on your machine.
+
+### 2. Clone the Repository
+```bash
+git clone <your-repo-url>
+cd vibethon-LearnStack-t110
