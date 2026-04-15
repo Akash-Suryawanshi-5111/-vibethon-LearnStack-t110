@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+    function isValidUser(data) {
+      return hasOnlyAllowedFields(['uid', 'email', 'displayName', 'xp', 'streak', 'completedModules', 'createdAt', 'lastLogin']) &&
+             data.uid is string &&
+             data.email is string &&
+             data.xp is number && data.xp >= 0 &&
+             data.streak is number && data.streak >= 0 &&
+             data.createdAt is string;
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated(); // Allow reading for leaderboard
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.uid == userId;
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.uid == userId;
+    }
+
+    match /modules/{moduleId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only admins can write modules
+    }
+  }
+}

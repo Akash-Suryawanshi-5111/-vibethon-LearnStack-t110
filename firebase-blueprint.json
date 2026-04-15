@@ -1,0 +1,42 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile data including gamification stats.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "xp": { "type": "number", "description": "Experience points" },
+        "streak": { "type": "number", "description": "Daily login streak" },
+        "completedModules": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "lastLogin": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "xp", "streak", "createdAt"]
+    },
+    "Module": {
+      "title": "Module",
+      "description": "Learning module content.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "level": { "type": "string", "enum": ["Beginner", "Intermediate", "Advanced"] },
+        "content": { "type": "string" },
+        "order": { "type": "number" }
+      },
+      "required": ["title", "level", "content", "order"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profiles"
+    },
+    "/modules/{moduleId}": {
+      "schema": { "$ref": "#/entities/Module" },
+      "description": "Learning modules"
+    }
+  }
+}
