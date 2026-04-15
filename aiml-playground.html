@@ -1,0 +1,2009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AIML Playground 🎮</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ============================================================
+   DESIGN SYSTEM — Maroon × White × Gold accent
+   Font: Syne (display) + DM Sans (body)
+   ============================================================ */
+:root {
+  --maroon:     #7B1E3A;
+  --maroon-d:   #5a1229;
+  --maroon-l:   #9d2449;
+  --maroon-xl:  #c44072;
+  --gold:       #D4A853;
+  --gold-l:     #f0c87a;
+  --white:      #FFFFFF;
+  --off:        #fdf8f9;
+  --gray-50:    #fafafa;
+  --gray-100:   #f4f4f4;
+  --gray-200:   #e5e5e5;
+  --gray-400:   #a3a3a3;
+  --gray-600:   #525252;
+  --gray-900:   #171717;
+  --green:      #16a34a;
+  --green-l:    #f0fdf4;
+  --green-b:    #bbf7d0;
+  --red:        #dc2626;
+  --red-l:      #fef2f2;
+  --red-b:      #fecaca;
+  --amber:      #d97706;
+  --amber-l:    #fffbeb;
+  --amber-b:    #fde68a;
+  --shadow-sm:  0 1px 3px rgba(123,30,58,.08), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:  0 4px 16px rgba(123,30,58,.12), 0 2px 6px rgba(0,0,0,.06);
+  --shadow-lg:  0 10px 40px rgba(123,30,58,.18), 0 4px 12px rgba(0,0,0,.08);
+  --radius:     12px;
+  --radius-lg:  18px;
+  --radius-xl:  24px;
+}
+
+/* ── RESET ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--white);
+  color:var(--gray-900);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+button{font-family:inherit;cursor:pointer}
+input,select{font-family:inherit}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--gray-100)}
+::-webkit-scrollbar-thumb{background:var(--maroon-xl);border-radius:99px}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.app-shell{display:flex;height:100vh;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{
+  width:220px;
+  min-width:220px;
+  background:var(--maroon-d);
+  display:flex;
+  flex-direction:column;
+  padding:0;
+  position:relative;
+  overflow:hidden;
+  transition:width .3s ease;
+}
+.sidebar::before{
+  content:'';
+  position:absolute;
+  top:-60px;right:-60px;
+  width:200px;height:200px;
+  background:rgba(255,255,255,.04);
+  border-radius:50%;
+  pointer-events:none;
+}
+.sidebar::after{
+  content:'';
+  position:absolute;
+  bottom:40px;left:-40px;
+  width:140px;height:140px;
+  background:rgba(212,168,83,.06);
+  border-radius:50%;
+  pointer-events:none;
+}
+
+.sidebar-logo{
+  padding:24px 20px 20px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.sidebar-logo h1{
+  font-family:'Syne',sans-serif;
+  font-size:17px;
+  font-weight:800;
+  color:var(--white);
+  letter-spacing:-.3px;
+  line-height:1.2;
+}
+.sidebar-logo span{color:var(--gold)}
+
+.sidebar-nav{flex:1;padding:12px 10px;overflow-y:auto}
+.nav-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 12px;
+  border-radius:10px;
+  color:rgba(255,255,255,.65);
+  font-size:13.5px;
+  font-weight:500;
+  cursor:pointer;
+  transition:all .2s ease;
+  margin-bottom:2px;
+  user-select:none;
+}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-item.active{background:rgba(255,255,255,.14);color:#fff}
+.nav-item .nav-icon{font-size:16px;width:20px;text-align:center}
+.nav-badge{
+  margin-left:auto;
+  background:var(--gold);
+  color:var(--maroon-d);
+  font-size:10px;
+  font-weight:700;
+  padding:2px 7px;
+  border-radius:99px;
+}
+
+.sidebar-footer{
+  padding:16px;
+  border-top:1px solid rgba(255,255,255,.08);
+}
+.user-card{
+  background:rgba(255,255,255,.07);
+  border-radius:10px;
+  padding:12px;
+}
+.user-avatar{
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,var(--gold),var(--maroon-xl));
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;color:#fff;
+  margin-bottom:8px;
+}
+.user-name{font-size:13px;font-weight:600;color:#fff;margin-bottom:2px}
+.user-level{font-size:11px;color:rgba(255,255,255,.5)}
+.user-xp-bar{
+  height:4px;background:rgba(255,255,255,.12);border-radius:99px;margin-top:8px;overflow:hidden;
+}
+.user-xp-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-l));border-radius:99px;transition:width .6s ease}
+
+/* MAIN CONTENT */
+.main{flex:1;overflow-y:auto;background:var(--off)}
+
+/* ============================================================
+   PAGE SYSTEM
+   ============================================================ */
+.page{display:none;padding:28px 32px;animation:pageIn .35s ease both}
+.page.active{display:block}
+@keyframes pageIn{
+  from{opacity:0;transform:translateY(16px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* ============================================================
+   COMMON COMPONENTS
+   ============================================================ */
+.page-title{
+  font-family:'Syne',sans-serif;
+  font-size:26px;
+  font-weight:800;
+  color:var(--gray-900);
+  margin-bottom:4px;
+  letter-spacing:-.5px;
+}
+.page-sub{font-size:14px;color:var(--gray-400);margin-bottom:24px}
+
+.card{
+  background:var(--white);
+  border-radius:var(--radius-lg);
+  padding:22px;
+  box-shadow:var(--shadow-sm);
+  border:1px solid rgba(123,30,58,.06);
+  transition:box-shadow .25s,transform .25s;
+}
+.card:hover{box-shadow:var(--shadow-md)}
+.card-hover:hover{transform:translateY(-3px)}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+
+/* ── BUTTONS ── */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:10px 20px;border-radius:9px;
+  font-size:13.5px;font-weight:600;
+  border:none;transition:all .2s ease;
+  white-space:nowrap;
+}
+.btn-primary{
+  background:var(--maroon);color:#fff;
+}
+.btn-primary:hover{background:var(--maroon-l);transform:translateY(-1px);box-shadow:0 4px 12px rgba(123,30,58,.3)}
+.btn-primary:active{transform:translateY(0)}
+.btn-secondary{
+  background:var(--maroon-bg,#fdf2f5);
+  color:var(--maroon);
+  border:1px solid rgba(123,30,58,.15);
+}
+.btn-secondary:hover{background:rgba(123,30,58,.1)}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-l));color:var(--maroon-d)}
+.btn-gold:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(212,168,83,.4)}
+.btn-sm{padding:7px 14px;font-size:12px}
+.btn-lg{padding:13px 28px;font-size:15px}
+.btn-block{width:100%;justify-content:center}
+
+/* ── BADGES ── */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 11px;border-radius:99px;
+  font-size:11.5px;font-weight:600;
+}
+.badge-maroon{background:#fdf2f5;color:var(--maroon);border:1px solid rgba(123,30,58,.15)}
+.badge-gold{background:#fef9ee;color:#92610d;border:1px solid rgba(212,168,83,.3)}
+.badge-green{background:var(--green-l);color:var(--green);border:1px solid var(--green-b)}
+.badge-red{background:var(--red-l);color:var(--red);border:1px solid var(--red-b)}
+.badge-gray{background:var(--gray-100);color:var(--gray-600);border:1px solid var(--gray-200)}
+
+/* ── FORM ELEMENTS ── */
+.form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.form-label{font-size:13px;font-weight:600;color:var(--gray-600)}
+.form-input{
+  padding:10px 14px;
+  border:1.5px solid var(--gray-200);
+  border-radius:9px;
+  font-size:14px;
+  color:var(--gray-900);
+  background:#fff;
+  transition:border-color .2s;
+  outline:none;
+}
+.form-input:focus{border-color:var(--maroon)}
+.form-hint{font-size:12px;color:var(--gray-400)}
+
+/* ── TOGGLE SWITCH ── */
+.toggle-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 0;border-bottom:1px solid var(--gray-100);
+}
+.toggle-row:last-child{border-bottom:none}
+.toggle-label-text{font-size:14px;color:var(--gray-900);font-weight:500}
+.toggle-label-sub{font-size:12px;color:var(--gray-400);margin-top:2px}
+.toggle-btns{display:flex;gap:6px}
+.tog-btn{
+  padding:6px 16px;border-radius:7px;
+  border:1.5px solid var(--gray-200);
+  background:#fff;color:var(--gray-600);
+  font-size:13px;font-weight:500;
+  transition:all .18s ease;
+}
+.tog-btn:hover{border-color:var(--maroon);color:var(--maroon)}
+.tog-yes{background:#dcfce7;color:var(--green);border-color:var(--green-b)}
+.tog-no{background:var(--red-l);color:var(--red);border-color:var(--red-b)}
+.tog-short{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}
+.tog-long{background:#fef3c7;color:#92400e;border-color:var(--amber-b)}
+
+/* ── RANGE SLIDER ── */
+input[type=range]{
+  -webkit-appearance:none;appearance:none;
+  width:100%;height:6px;
+  background:var(--gray-200);border-radius:99px;outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:20px;height:20px;border-radius:50%;
+  background:var(--maroon);border:3px solid #fff;
+  box-shadow:0 2px 6px rgba(123,30,58,.4);
+  cursor:pointer;transition:transform .15s;
+}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15)}
+
+/* ── PROGRESS BAR ── */
+.prog-track{
+  background:var(--gray-100);border-radius:99px;
+  height:8px;overflow:hidden;
+}
+.prog-fill{
+  height:100%;border-radius:99px;
+  background:linear-gradient(90deg,var(--maroon),var(--maroon-xl));
+  transition:width .7s cubic-bezier(.22,1,.36,1);
+}
+
+/* ── RESULT BOXES ── */
+.result-box{
+  border-radius:var(--radius);padding:20px;text-align:center;
+  transition:all .35s cubic-bezier(.22,1,.36,1);
+  animation:resultPop .4s cubic-bezier(.22,1,.36,1);
+}
+@keyframes resultPop{from{transform:scale(.96);opacity:.6}to{transform:scale(1);opacity:1}}
+.result-spam{background:var(--red-l);border:2px solid var(--red-b)}
+.result-ham{background:var(--green-l);border:2px solid var(--green-b)}
+.result-label{font-family:'Syne',sans-serif;font-size:22px;font-weight:800}
+.result-spam .result-label{color:var(--red)}
+.result-ham .result-label{color:var(--green)}
+.result-reason{font-size:13px;margin-top:8px;opacity:.75}
+.result-spam .result-reason{color:var(--red)}
+.result-ham .result-reason{color:var(--green)}
+
+/* ============================================================
+   HOME PAGE
+   ============================================================ */
+.hero-banner{
+  background:linear-gradient(135deg,var(--maroon-d) 0%,var(--maroon) 50%,var(--maroon-l) 100%);
+  border-radius:var(--radius-xl);
+  padding:36px;
+  color:#fff;
+  position:relative;
+  overflow:hidden;
+  margin-bottom:24px;
+}
+.hero-banner::before{
+  content:'';
+  position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.hero-banner::after{
+  content:'🤖';
+  position:absolute;right:36px;top:50%;transform:translateY(-50%);
+  font-size:80px;opacity:.15;
+  filter:drop-shadow(0 0 20px rgba(255,255,255,.2));
+}
+.hero-eyebrow{
+  font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:var(--gold);margin-bottom:10px;display:flex;align-items:center;gap:6px;
+}
+.hero-eyebrow::before{content:'';width:20px;height:1px;background:var(--gold)}
+.hero-title{
+  font-family:'Syne',sans-serif;
+  font-size:32px;font-weight:800;line-height:1.15;
+  margin-bottom:10px;letter-spacing:-.5px;
+}
+.hero-title span{color:var(--gold-l)}
+.hero-desc{font-size:14px;opacity:.8;max-width:500px;line-height:1.65;margin-bottom:20px}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap}
+.hero-stats{
+  display:flex;gap:24px;margin-top:24px;
+  padding-top:20px;border-top:1px solid rgba(255,255,255,.12);
+}
+.hero-stat-item{text-align:center}
+.hero-stat-num{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#fff}
+.hero-stat-lbl{font-size:11px;opacity:.6;margin-top:2px}
+
+/* stat cards */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.stat-card{
+  background:#fff;border-radius:var(--radius-lg);padding:18px 20px;
+  border:1px solid rgba(123,30,58,.06);
+  box-shadow:var(--shadow-sm);
+  transition:transform .2s,box-shadow .2s;
+}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.stat-icon{font-size:22px;margin-bottom:10px}
+.stat-num{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--maroon)}
+.stat-lbl{font-size:12px;color:var(--gray-400);margin-top:3px;font-weight:500}
+
+/* quick actions */
+.quick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:24px}
+.quick-card{
+  background:#fff;border-radius:var(--radius-lg);padding:20px;
+  border:1px solid rgba(123,30,58,.06);box-shadow:var(--shadow-sm);
+  cursor:pointer;transition:all .22s ease;
+  display:flex;align-items:center;gap:14px;
+}
+.quick-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:rgba(123,30,58,.15)}
+.quick-icon{
+  width:46px;height:46px;border-radius:12px;
+  background:linear-gradient(135deg,#fdf2f5,#f9d4df);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;
+}
+.quick-text h3{font-size:14px;font-weight:600;margin-bottom:3px;color:var(--gray-900)}
+.quick-text p{font-size:12px;color:var(--gray-400);line-height:1.4}
+.quick-arrow{margin-left:auto;color:var(--gray-400);font-size:16px;transition:transform .2s}
+.quick-card:hover .quick-arrow{transform:translateX(3px);color:var(--maroon)}
+
+/* achievements */
+.achievement-list{display:flex;flex-direction:column;gap:10px}
+.achievement-item{
+  display:flex;align-items:center;gap:12px;padding:14px 16px;
+  background:#fff;border-radius:var(--radius);
+  border:1px solid rgba(123,30,58,.06);box-shadow:var(--shadow-sm);
+}
+.achievement-icon{font-size:22px;width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.achievement-icon.earned{background:linear-gradient(135deg,#fef9ee,#fde68a)}
+.achievement-icon.locked{background:var(--gray-100);filter:grayscale(1);opacity:.5}
+.achievement-text h4{font-size:13px;font-weight:600;margin-bottom:2px}
+.achievement-text p{font-size:12px;color:var(--gray-400)}
+.achievement-pts{margin-left:auto;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--maroon)}
+
+/* ============================================================
+   LEARN PAGE
+   ============================================================ */
+.learn-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+.learn-card{
+  background:#fff;border-radius:var(--radius-lg);padding:24px;
+  border:1px solid rgba(123,30,58,.06);box-shadow:var(--shadow-sm);
+  cursor:pointer;transition:all .22s ease;
+  position:relative;overflow:hidden;
+}
+.learn-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--maroon),var(--maroon-xl));
+  transform:scaleX(0);transform-origin:left;transition:transform .3s ease;
+}
+.learn-card:hover::before{transform:scaleX(1)}
+.learn-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+.learn-card-icon{
+  width:52px;height:52px;border-radius:14px;
+  background:linear-gradient(135deg,#fdf2f5,#f5c4d1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;margin-bottom:14px;
+}
+.learn-card h3{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:8px;letter-spacing:-.2px}
+.learn-card p{font-size:13px;color:var(--gray-600);line-height:1.6;margin-bottom:14px}
+.learn-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto}
+.learn-pts{font-size:11px;color:var(--maroon);font-weight:700;background:#fdf2f5;padding:3px 10px;border-radius:99px}
+
+/* concept detail modal-style */
+.concept-detail{
+  background:linear-gradient(135deg,#fdf2f5 0%,#fff 100%);
+  border:1.5px solid rgba(123,30,58,.12);
+  border-radius:var(--radius-lg);padding:24px;margin-top:16px;
+  animation:slideDown .3s ease;
+}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.concept-detail h4{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin-bottom:10px;color:var(--maroon)}
+.concept-detail p{font-size:14px;line-height:1.7;color:var(--gray-600);margin-bottom:12px}
+.concept-detail ul{font-size:13.5px;color:var(--gray-600);line-height:1.7;padding-left:18px}
+.concept-detail ul li{margin-bottom:4px}
+.concept-detail .key-term{
+  display:inline-block;background:var(--maroon);color:#fff;
+  padding:2px 8px;border-radius:5px;font-size:12px;font-weight:600;margin-right:4px;
+}
+
+/* ============================================================
+   SPAM SIMULATOR
+   ============================================================ */
+.sim-layout{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.sim-controls{background:#fff;border-radius:var(--radius-lg);padding:24px;border:1px solid rgba(123,30,58,.06);box-shadow:var(--shadow-sm)}
+.sim-output{background:#fff;border-radius:var(--radius-lg);padding:24px;border:1px solid rgba(123,30,58,.06);box-shadow:var(--shadow-sm)}
+.sim-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:16px;color:var(--gray-900);display:flex;align-items:center;gap:8px}
+
+.score-meter{
+  display:flex;align-items:center;gap:10px;margin:16px 0;
+}
+.score-dots{display:flex;gap:5px}
+.score-dot{
+  width:24px;height:24px;border-radius:50%;
+  background:var(--gray-200);transition:all .3s ease;
+}
+.score-dot.active{background:var(--maroon);transform:scale(1.1)}
+.score-dot.danger{background:var(--red);transform:scale(1.1)}
+.score-label{font-size:12px;color:var(--gray-400);font-weight:500}
+
+.why-box{
+  background:var(--gray-50);border-radius:10px;padding:14px;margin-top:12px;
+  border:1px solid var(--gray-100);
+  font-size:13px;color:var(--gray-600);line-height:1.6;
+}
+.why-box strong{color:var(--gray-900);font-weight:600}
+
+/* ============================================================
+   GAME PAGE
+   ============================================================ */
+.game-layout{display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start}
+.game-canvas-card{background:#fff;border-radius:var(--radius-lg);padding:20px;border:1px solid rgba(123,30,58,.06);box-shadow:var(--shadow-sm)}
+.game-sidebar{background:#fff;border-radius:var(--radius-lg);padding:20px;border:1px solid rgba(123,30,58,.06);box-shadow:var(--shadow-sm)}
+canvas#gameCanvas{
+  width:100%;border-radius:10px;display:block;
+  background:#fafafa;border:1px solid var(--gray-100);
+}
+.accuracy-ring{
+  width:80px;height:80px;margin:0 auto 14px;position:relative;
+  display:flex;align-items:center;justify-content:center;
+}
+.accuracy-ring svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.accuracy-ring-pct{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--maroon)}
+.class-legend{display:flex;flex-direction:column;gap:8px;margin:14px 0}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:13px}
+.legend-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.game-msg{
+  padding:14px 16px;border-radius:10px;font-size:14px;font-weight:600;
+  display:none;animation:resultPop .4s ease;
+  text-align:center;margin-top:12px;
+}
+.game-msg.show{display:block}
+.game-msg.success{background:#f0fdf4;color:var(--green);border:1.5px solid var(--green-b)}
+.game-msg.fail{background:var(--red-l);color:var(--red);border:1.5px solid var(--red-b)}
+
+/* ============================================================
+   QUIZ PAGE
+   ============================================================ */
+.quiz-progress{
+  display:flex;gap:6px;margin-bottom:24px;
+}
+.quiz-pip{
+  flex:1;height:4px;border-radius:99px;
+  background:var(--gray-200);transition:background .3s;
+}
+.quiz-pip.done{background:var(--maroon)}
+.quiz-pip.active{background:var(--maroon-xl)}
+
+.quiz-card{
+  background:#fff;border-radius:var(--radius-lg);padding:26px;
+  border:1px solid rgba(123,30,58,.06);box-shadow:var(--shadow-sm);
+  margin-bottom:16px;
+}
+.quiz-num{font-size:11px;font-weight:700;color:var(--maroon);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px}
+.quiz-q{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;line-height:1.35;margin-bottom:18px;letter-spacing:-.2px}
+.options-grid{display:flex;flex-direction:column;gap:9px}
+.opt-btn{
+  padding:13px 16px;border-radius:10px;text-align:left;
+  border:1.5px solid var(--gray-200);background:#fff;
+  font-size:14px;font-weight:500;color:var(--gray-900);
+  transition:all .18s ease;cursor:pointer;
+  display:flex;align-items:center;gap:10px;
+}
+.opt-btn:hover:not(:disabled){background:#fdf2f5;border-color:var(--maroon);color:var(--maroon)}
+.opt-btn.selected{background:#fdf2f5;border-color:var(--maroon);color:var(--maroon)}
+.opt-btn.correct{background:var(--green-l);border-color:var(--green-b);color:var(--green)}
+.opt-btn.wrong{background:var(--red-l);border-color:var(--red-b);color:var(--red)}
+.opt-letter{
+  width:26px;height:26px;border-radius:7px;
+  background:var(--gray-100);color:var(--gray-600);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;flex-shrink:0;transition:all .18s;
+}
+.opt-btn.selected .opt-letter{background:var(--maroon);color:#fff}
+.opt-btn.correct .opt-letter{background:var(--green);color:#fff}
+.opt-btn.wrong .opt-letter{background:var(--red);color:#fff}
+
+.quiz-nav{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+
+/* quiz result */
+.quiz-result-card{
+  background:linear-gradient(135deg,var(--maroon-d),var(--maroon));
+  border-radius:var(--radius-xl);padding:36px;text-align:center;color:#fff;
+  animation:pageIn .4s ease;
+}
+.quiz-score-circle{
+  width:100px;height:100px;border-radius:50%;margin:0 auto 20px;
+  background:rgba(255,255,255,.12);border:3px solid rgba(255,255,255,.3);
+  display:flex;align-items:center;justify-content:center;
+}
+.quiz-score-circle span{font-family:'Syne',sans-serif;font-size:28px;font-weight:800}
+.quiz-result-card h3{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:8px}
+.quiz-result-card p{font-size:14px;opacity:.8;margin-bottom:20px;line-height:1.6}
+.quiz-breakdown{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0;
+}
+.quiz-break-item{background:rgba(255,255,255,.1);border-radius:10px;padding:14px}
+.quiz-break-num{font-family:'Syne',sans-serif;font-size:20px;font-weight:800}
+.quiz-break-lbl{font-size:11px;opacity:.65;margin-top:3px}
+
+/* ============================================================
+   LOAN AI PAGE
+   ============================================================ */
+.loan-layout{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.loan-form-card{background:#fff;border-radius:var(--radius-lg);padding:24px;border:1px solid rgba(123,30,58,.06);box-shadow:var(--shadow-sm)}
+.loan-result-card{background:#fff;border-radius:var(--radius-lg);padding:24px;border:1px solid rgba(123,30,58,.06);box-shadow:var(--shadow-sm)}
+
+.slider-group{margin-bottom:20px}
+.slider-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.slider-header label{font-size:13px;font-weight:600;color:var(--gray-600)}
+.slider-val{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--maroon)}
+
+.factors-list{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.factor-item{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;
+  border-radius:9px;border:1px solid var(--gray-100);
+  font-size:13px;
+}
+.factor-icon{font-size:16px;width:28px;text-align:center}
+.factor-pass{background:#f0fdf4;border-color:var(--green-b);color:var(--green)}
+.factor-fail{background:var(--red-l);border-color:var(--red-b);color:var(--red)}
+.factor-warn{background:var(--amber-l);border-color:var(--amber-b);color:var(--amber)}
+
+.loan-verdict{
+  text-align:center;padding:24px;border-radius:var(--radius-lg);
+  transition:all .35s cubic-bezier(.22,1,.36,1);
+  animation:resultPop .4s ease;
+  min-height:140px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.loan-approved{background:var(--green-l);border:2px solid var(--green-b)}
+.loan-rejected{background:var(--red-l);border:2px solid var(--red-b)}
+.loan-review{background:var(--amber-l);border:2px solid var(--amber-b)}
+.loan-idle{background:var(--gray-50);border:2px dashed var(--gray-200)}
+.verdict-icon{font-size:36px;margin-bottom:10px}
+.verdict-label{font-family:'Syne',sans-serif;font-size:20px;font-weight:800}
+.verdict-sub{font-size:13px;margin-top:5px;opacity:.75}
+.loan-approved .verdict-label{color:var(--green)}
+.loan-rejected .verdict-label{color:var(--red)}
+.loan-review .verdict-label{color:var(--amber)}
+.loan-idle .verdict-label{color:var(--gray-400)}
+
+.risk-meter{margin-top:16px}
+.risk-bar-bg{background:var(--gray-100);height:10px;border-radius:99px;overflow:hidden;margin:8px 0}
+.risk-bar-fill{height:100%;border-radius:99px;transition:width .6s ease,background .4s}
+.risk-low{background:linear-gradient(90deg,var(--green),#4ade80)}
+.risk-med{background:linear-gradient(90deg,var(--amber),#fbbf24)}
+.risk-high{background:linear-gradient(90deg,var(--red),#f87171)}
+.risk-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--gray-400)}
+
+/* ============================================================
+   GAMIFICATION / TOAST / CONFETTI
+   ============================================================ */
+.toast{
+  position:fixed;top:20px;right:20px;z-index:9999;
+  background:var(--maroon-d);color:#fff;
+  padding:12px 20px;border-radius:12px;
+  font-size:13.5px;font-weight:600;
+  box-shadow:0 8px 24px rgba(0,0,0,.2);
+  transform:translateX(120px);opacity:0;
+  transition:all .35s cubic-bezier(.22,1,.36,1);
+  display:flex;align-items:center;gap:10px;
+  max-width:280px;
+}
+.toast.show{transform:translateX(0);opacity:1}
+.toast-icon{font-size:18px}
+.toast-pts{
+  background:var(--gold);color:var(--maroon-d);
+  padding:1px 8px;border-radius:99px;font-size:11px;font-weight:800;
+  margin-left:4px;
+}
+
+/* AI ASSISTANT */
+.ai-fab{
+  position:fixed;bottom:24px;right:24px;z-index:100;
+}
+.ai-fab-btn{
+  width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(135deg,var(--maroon),var(--maroon-l));
+  border:none;color:#fff;font-size:22px;
+  box-shadow:0 4px 18px rgba(123,30,58,.5);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:transform .2s;
+}
+.ai-fab-btn:hover{transform:scale(1.1)}
+.ai-popup{
+  position:absolute;bottom:60px;right:0;
+  background:#fff;border-radius:var(--radius-lg);
+  padding:18px;width:240px;
+  box-shadow:var(--shadow-lg);
+  border:1px solid rgba(123,30,58,.08);
+  display:none;animation:pageIn .25s ease;
+}
+.ai-popup.open{display:block}
+.ai-popup-header{
+  display:flex;align-items:center;gap:8px;margin-bottom:10px;
+  font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--maroon);
+}
+.ai-popup p{font-size:12.5px;color:var(--gray-600);line-height:1.6;margin-bottom:8px}
+.ai-tip{
+  background:#fdf2f5;border-radius:8px;padding:10px 12px;
+  font-size:12px;color:var(--maroon);line-height:1.5;
+  border-left:3px solid var(--maroon);
+}
+
+/* CONFETTI CANVAS */
+#confettiCanvas{
+  position:fixed;inset:0;pointer-events:none;z-index:9998;
+}
+
+/* ============================================================
+   SECTION DIVIDER
+   ============================================================ */
+.section-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:14px;
+}
+.section-head h2{
+  font-family:'Syne',sans-serif;font-size:16px;font-weight:700;
+  color:var(--gray-900);letter-spacing:-.2px;
+}
+
+/* ============================================================
+   FIREBASE STATUS BANNER
+   ============================================================ */
+.firebase-banner{
+  background:linear-gradient(135deg,#fef9ee,#fef3c7);
+  border:1px solid var(--amber-b);border-radius:10px;
+  padding:12px 16px;font-size:13px;color:#92400e;
+  margin-bottom:20px;display:flex;align-items:center;gap:10px;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media(max-width:900px){
+  .sidebar{width:60px;min-width:60px}
+  .sidebar-logo h1,.nav-item span,.sidebar-footer{display:none}
+  .nav-item{justify-content:center;padding:12px}
+  .nav-item .nav-icon{width:auto}
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .sim-layout,.game-layout,.loan-layout{grid-template-columns:1fr}
+  .learn-grid,.quick-grid{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .page{padding:16px}
+  .hero-banner{padding:22px}
+  .hero-title{font-size:24px}
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .grid-2,.grid-3,.grid-4{grid-template-columns:1fr}
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.float{animation:float 3s ease-in-out infinite}
+.pulse-on-earn{animation:pulse .4s ease}
+</style>
+</head>
+<body>
+
+<canvas id="confettiCanvas"></canvas>
+
+<div class="app-shell">
+  <!-- ======== SIDEBAR ======== -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <h1>AIML <span>Playground</span> 🎮</h1>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-item active" onclick="nav('home')">
+        <span class="nav-icon">🏠</span><span>Dashboard</span>
+      </div>
+      <div class="nav-item" onclick="nav('learn')">
+        <span class="nav-icon">📚</span><span>Learn</span>
+        <span class="nav-badge">4</span>
+      </div>
+      <div class="nav-item" onclick="nav('sim')">
+        <span class="nav-icon">🧪</span><span>Spam Sim</span>
+      </div>
+      <div class="nav-item" onclick="nav('game')">
+        <span class="nav-icon">🎮</span><span>Train Model</span>
+      </div>
+      <div class="nav-item" onclick="nav('quiz')">
+        <span class="nav-icon">🧠</span><span>Quiz</span>
+      </div>
+      <div class="nav-item" onclick="nav('loan')">
+        <span class="nav-icon">🌍</span><span>Loan AI</span>
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar" id="sidebar-avatar">L</div>
+        <div class="user-name" id="sidebar-name">Learner</div>
+        <div class="user-level" id="sidebar-level">Beginner • Lv 1</div>
+        <div class="user-xp-bar">
+          <div class="user-xp-fill" id="sidebar-xp" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ======== MAIN CONTENT ======== -->
+  <main class="main">
+
+    <!-- ===== HOME ===== -->
+    <div id="page-home" class="page active">
+      <div id="firebase-banner" class="firebase-banner" style="display:none">
+        ⚠️ <strong>Firebase:</strong> Configure your project credentials in the <code>firebaseConfig</code> object at the bottom of this file to enable cloud sync.
+      </div>
+
+      <div class="hero-banner">
+        <div class="hero-eyebrow">Welcome to your lab</div>
+        <h2 class="hero-title">Learn AI & ML by <span>Doing</span></h2>
+        <p class="hero-desc">Simulations, mini-games, quizzes and real-world scenarios — all in one playground. Earn points and level up!</p>
+        <div class="hero-actions">
+          <button class="btn btn-gold btn-lg" onclick="nav('learn')">🚀 Start Learning</button>
+          <button class="btn btn-secondary btn-lg" onclick="nav('quiz')" style="background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.2)">🧠 Take Quiz</button>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat-item">
+            <div class="hero-stat-num" id="h-pts">0</div>
+            <div class="hero-stat-lbl">Total Points</div>
+          </div>
+          <div class="hero-stat-item">
+            <div class="hero-stat-num" id="h-lvl">1</div>
+            <div class="hero-stat-lbl">Level</div>
+          </div>
+          <div class="hero-stat-item">
+            <div class="hero-stat-num" id="h-bdg">0</div>
+            <div class="hero-stat-lbl">Badges</div>
+          </div>
+          <div class="hero-stat-item">
+            <div class="hero-stat-num" id="h-streak">0</div>
+            <div class="hero-stat-lbl">Day Streak</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- XP Progress -->
+      <div class="card" style="margin-bottom:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div>
+            <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700" id="home-levelname">Beginner</div>
+            <div style="font-size:12px;color:var(--gray-400)" id="home-xplabel">0 / 100 XP to Explorer</div>
+          </div>
+          <span class="badge badge-maroon" id="home-levelchip">Level 1</span>
+        </div>
+        <div class="prog-track"><div class="prog-fill" id="home-progfill" style="width:0%"></div></div>
+        <div id="home-badges" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"></div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="section-head"><h2>Quick Actions</h2></div>
+      <div class="quick-grid">
+        <div class="quick-card" onclick="nav('sim')">
+          <div class="quick-icon">🧪</div>
+          <div class="quick-text"><h3>Spam Classifier</h3><p>Toggle features and see real-time AI predictions</p></div>
+          <span class="quick-arrow">›</span>
+        </div>
+        <div class="quick-card" onclick="nav('game')">
+          <div class="quick-icon">🎮</div>
+          <div class="quick-text"><h3>Train Your Model</h3><p>Draw a decision boundary to classify scatter points</p></div>
+          <span class="quick-arrow">›</span>
+        </div>
+        <div class="quick-card" onclick="nav('quiz')">
+          <div class="quick-icon">🧠</div>
+          <div class="quick-text"><h3>AIML Quiz</h3><p>5 questions • Earn up to 30 XP points</p></div>
+          <span class="quick-arrow">›</span>
+        </div>
+        <div class="quick-card" onclick="nav('loan')">
+          <div class="quick-icon">🌍</div>
+          <div class="quick-text"><h3>Loan Approval AI</h3><p>Simulate a bank's ML decision engine</p></div>
+          <span class="quick-arrow">›</span>
+        </div>
+      </div>
+
+      <!-- Achievements -->
+      <div class="section-head"><h2>Achievements</h2></div>
+      <div class="achievement-list" id="achievement-list"></div>
+    </div>
+
+    <!-- ===== LEARN ===== -->
+    <div id="page-learn" class="page">
+      <div class="page-title">📚 Learn Module</div>
+      <div class="page-sub">Tap a card to expand the lesson. Each concept you explore earns +10 XP.</div>
+
+      <div class="learn-grid" id="learn-grid"></div>
+
+      <div id="concept-detail" style="display:none"></div>
+    </div>
+
+    <!-- ===== SPAM SIMULATOR ===== -->
+    <div id="page-sim" class="page">
+      <div class="page-title">🧪 Spam Classifier Simulator</div>
+      <div class="page-sub">Toggle features to see how a rule-based classifier works in real-time.</div>
+
+      <div class="sim-layout">
+        <div class="sim-controls">
+          <div class="sim-title">⚙️ Input Features</div>
+
+          <div class="toggle-row">
+            <div><div class="toggle-label-text">Contains "FREE" keyword</div><div class="toggle-label-sub">High-signal spam indicator</div></div>
+            <div class="toggle-btns">
+              <button class="tog-btn" id="tf-yes" onclick="setTog('free',1)">Yes</button>
+              <button class="tog-btn tog-no" id="tf-no" onclick="setTog('free',0)">No</button>
+            </div>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label-text">Contains "WIN" or "PRIZE"</div><div class="toggle-label-sub">Common phishing words</div></div>
+            <div class="toggle-btns">
+              <button class="tog-btn" id="tw-yes" onclick="setTog('win',1)">Yes</button>
+              <button class="tog-btn tog-no" id="tw-no" onclick="setTog('win',0)">No</button>
+            </div>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label-text">Contains suspicious link</div><div class="toggle-label-sub">Shortened or HTTP URL</div></div>
+            <div class="toggle-btns">
+              <button class="tog-btn" id="tl-yes" onclick="setTog('link',1)">Yes</button>
+              <button class="tog-btn tog-no" id="tl-no" onclick="setTog('link',0)">No</button>
+            </div>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label-text">All CAPS text</div><div class="toggle-label-sub">Urgency indicator</div></div>
+            <div class="toggle-btns">
+              <button class="tog-btn" id="tc-yes" onclick="setTog('caps',1)">Yes</button>
+              <button class="tog-btn tog-no" id="tc-no" onclick="setTog('caps',0)">No</button>
+            </div>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label-text">Message length</div><div class="toggle-label-sub">Long messages are common in spam</div></div>
+            <div class="toggle-btns">
+              <button class="tog-btn tog-short" id="tlen-s" onclick="setTog('len',0)">Short</button>
+              <button class="tog-btn" id="tlen-l" onclick="setTog('len',1)">Long</button>
+            </div>
+          </div>
+          <div class="toggle-row" style="border:none;padding-bottom:0">
+            <div><div class="toggle-label-text">Unknown sender</div><div class="toggle-label-sub">Not in contacts</div></div>
+            <div class="toggle-btns">
+              <button class="tog-btn" id="ts-yes" onclick="setTog('sender',1)">Yes</button>
+              <button class="tog-btn tog-no" id="ts-no" onclick="setTog('sender',0)">No</button>
+            </div>
+          </div>
+
+          <!-- score meter -->
+          <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--gray-100)">
+            <div style="font-size:12px;font-weight:600;color:var(--gray-400);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">Spam Score</div>
+            <div class="score-meter">
+              <div class="score-dots" id="score-dots">
+                <div class="score-dot"></div><div class="score-dot"></div><div class="score-dot"></div>
+                <div class="score-dot"></div><div class="score-dot"></div><div class="score-dot"></div>
+              </div>
+              <span class="score-label" id="score-txt">0 / 6 signals</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sim-output">
+          <div class="sim-title">📊 Classifier Output</div>
+          <div class="result-box result-ham" id="sim-result">
+            <div class="result-label" id="sim-label">✅ NOT SPAM</div>
+            <div style="font-size:13px;margin-top:4px;color:var(--green)" id="sim-conf">Confidence: 95%</div>
+          </div>
+          <div class="why-box" id="sim-why">
+            <strong>Why this classification?</strong><br>
+            No suspicious signals detected. This message appears legitimate.
+          </div>
+          <button class="btn btn-primary btn-block" style="margin-top:14px" onclick="lockSimAnswer()">
+            🎯 Lock Answer & Earn Points
+          </button>
+
+          <!-- mini bar chart for feature weights -->
+          <div style="margin-top:18px">
+            <div style="font-size:12px;font-weight:600;color:var(--gray-400);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">Feature Weights</div>
+            <div id="feature-bars"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== GAME ===== -->
+    <div id="page-game" class="page">
+      <div class="page-title">🎮 Train Your Model</div>
+      <div class="page-sub">Move the decision boundary slider to separate the two classes. Aim for perfect accuracy!</div>
+
+      <div class="game-layout">
+        <div class="game-canvas-card">
+          <canvas id="gameCanvas" height="320"></canvas>
+          <div style="margin-top:16px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <span style="font-size:13px;font-weight:600;color:var(--gray-600)">Decision Boundary</span>
+              <span style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--maroon)" id="boundary-val">x = 50%</span>
+            </div>
+            <input type="range" min="5" max="95" value="50" id="boundary-slider" oninput="onBoundaryChange(this.value)" step="1">
+          </div>
+          <div class="game-msg" id="game-msg"></div>
+          <button class="btn btn-primary btn-block" style="margin-top:14px" onclick="checkBoundary()">
+            🔍 Check My Classification
+          </button>
+        </div>
+
+        <div class="game-sidebar">
+          <!-- accuracy ring via canvas -->
+          <div style="text-align:center;margin-bottom:16px">
+            <canvas id="accuracyCanvas" width="100" height="100" style="display:block;margin:0 auto 8px"></canvas>
+            <div style="font-size:12px;color:var(--gray-400)">Current Accuracy</div>
+          </div>
+
+          <div class="class-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div>Class A (Blue) — 8 points</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>Class B (Red) — 8 points</div>
+          </div>
+
+          <div style="border-top:1px solid var(--gray-100);padding-top:14px;margin-top:6px">
+            <div style="font-size:12px;font-weight:600;color:var(--gray-400);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">Misclassified</div>
+            <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--maroon)" id="misc-count">0</div>
+            <div style="font-size:12px;color:var(--gray-400)">points wrong</div>
+          </div>
+
+          <div style="border-top:1px solid var(--gray-100);padding-top:14px;margin-top:14px">
+            <div style="font-size:12px;font-weight:600;color:var(--gray-400);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">How to play</div>
+            <div style="font-size:12px;color:var(--gray-600);line-height:1.6">
+              Drag the slider left or right. The maroon line is your boundary — everything left goes to Class A, everything right to Class B. Hit <em>Check</em> when ready!
+            </div>
+          </div>
+
+          <button class="btn btn-secondary btn-block btn-sm" style="margin-top:14px" onclick="resetGame()">🔄 Shuffle Points</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== QUIZ ===== -->
+    <div id="page-quiz" class="page">
+      <div class="page-title">🧠 AIML Quiz</div>
+      <div class="page-sub">Answer 5 questions to test your knowledge. Earn up to 30 XP!</div>
+
+      <div id="quiz-container">
+        <div class="quiz-progress" id="quiz-progress"></div>
+        <div id="quiz-body"></div>
+        <div class="quiz-nav" id="quiz-nav"></div>
+      </div>
+      <div id="quiz-result" style="display:none"></div>
+    </div>
+
+    <!-- ===== LOAN AI ===== -->
+    <div id="page-loan" class="page">
+      <div class="page-title">🌍 Loan Approval AI</div>
+      <div class="page-sub">Simulate a bank's rule-based AI model. Adjust the sliders and see the real-time decision.</div>
+
+      <div class="loan-layout">
+        <div class="loan-form-card">
+          <div class="sim-title">📋 Applicant Profile</div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <label>Monthly Salary</label>
+              <span class="slider-val" id="sal-val">₹45,000</span>
+            </div>
+            <input type="range" min="5000" max="200000" value="45000" step="1000" id="loan-salary" oninput="updateLoan()">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray-400);margin-top:4px"><span>₹5k</span><span>₹2L</span></div>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <label>Credit Score</label>
+              <span class="slider-val" id="cred-val">680</span>
+            </div>
+            <input type="range" min="300" max="850" value="680" step="1" id="loan-credit" oninput="updateLoan()">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray-400);margin-top:4px"><span>300 (Poor)</span><span>850 (Excellent)</span></div>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <label>Loan Amount Requested</label>
+              <span class="slider-val" id="loan-val">₹5,00,000</span>
+            </div>
+            <input type="range" min="50000" max="5000000" value="500000" step="10000" id="loan-amount" oninput="updateLoan()">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray-400);margin-top:4px"><span>₹50k</span><span>₹50L</span></div>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <label>Years Employed</label>
+              <span class="slider-val" id="emp-val">3 yrs</span>
+            </div>
+            <input type="range" min="0" max="30" value="3" step="1" id="loan-emp" oninput="updateLoan()">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray-400);margin-top:4px"><span>0</span><span>30 yrs</span></div>
+          </div>
+
+          <div class="factors-list" id="factors-list"></div>
+        </div>
+
+        <div class="loan-result-card">
+          <div class="sim-title">🤖 AI Decision</div>
+
+          <div class="loan-verdict loan-idle" id="loan-verdict">
+            <div class="verdict-icon">⏳</div>
+            <div class="verdict-label">Awaiting Input</div>
+            <div class="verdict-sub">Adjust the sliders to see the decision</div>
+          </div>
+
+          <div class="risk-meter" style="margin-top:16px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <span style="font-size:12px;font-weight:600;color:var(--gray-400)">Risk Score</span>
+              <span style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--maroon)" id="risk-pct">—</span>
+            </div>
+            <div class="risk-bar-bg"><div id="risk-bar" style="width:0%;height:100%;border-radius:99px;transition:width .6s ease,background .4s"></div></div>
+            <div class="risk-labels"><span>Low Risk</span><span>High Risk</span></div>
+          </div>
+
+          <div style="margin-top:16px;padding:14px;background:var(--gray-50);border-radius:10px;font-size:13px;color:var(--gray-600);line-height:1.6" id="loan-explanation">
+            Enter applicant details above to see the AI's reasoning.
+          </div>
+
+          <button class="btn btn-primary btn-block" style="margin-top:14px" onclick="lockLoan()">
+            💰 Submit Application (+20 pts)
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div><!-- end .app-shell -->
+
+<!-- AI ASSISTANT FAB -->
+<div class="ai-fab">
+  <div class="ai-popup" id="ai-popup">
+    <div class="ai-popup-header">🤖 AI Assistant</div>
+    <p>Need help? Here are some quick tips:</p>
+    <div class="ai-tip" id="ai-tip-text">Loading tip...</div>
+    <button class="btn btn-secondary btn-sm btn-block" style="margin-top:10px" onclick="nextTip()">Next Tip →</button>
+  </div>
+  <button class="ai-fab-btn" onclick="toggleHelper()">🤖</button>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span class="toast-icon" id="toast-icon">🎉</span>
+  <span id="toast-msg">Points earned!</span>
+</div>
+
+<!-- ================================================================
+     JAVASCRIPT
+     ================================================================ -->
+<script>
+// ============================================================
+// FIREBASE CONFIG — REPLACE WITH YOUR OWN CONFIG
+// ============================================================
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+// Init Firebase (graceful fail if config is placeholder)
+let db = null;
+let auth = null;
+let userId = 'local_user_' + Math.random().toString(36).substr(2, 8);
+
+try {
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+  auth = firebase.auth();
+  // Anonymous sign-in
+  auth.signInAnonymously().then(cred => {
+    userId = cred.user.uid;
+    loadUserFromFirestore();
+  }).catch(()=>{});
+} catch(e) {
+  document.getElementById('firebase-banner').style.display = 'flex';
+}
+
+// ============================================================
+// STATE
+// ============================================================
+let appState = {
+  pts: 0,
+  lvl: 1,
+  badges: [],
+  streak: 0,
+  simLocked: false,
+  loanLocked: false,
+  quizDone: false,
+  learnedCards: new Set()
+};
+
+const LEVELS = [
+  { name:'Beginner', min:0, max:99 },
+  { name:'Explorer', min:100, max:249 },
+  { name:'AI Master', min:250, max:Infinity }
+];
+
+const ALL_ACHIEVEMENTS = [
+  { id:'ai_starter', icon:'🏅', title:'AI Starter', desc:'Complete your first lesson', pts:'+10 XP', earned:false },
+  { id:'model_trainer', icon:'🔥', title:'Model Trainer', desc:'Train the decision boundary perfectly', pts:'+20 XP', earned:false },
+  { id:'quiz_champ', icon:'🏆', title:'Quiz Champion', desc:'Score 4/5 or more on the quiz', pts:'+30 XP', earned:false },
+  { id:'spam_hunter', icon:'🛡️', title:'Spam Hunter', desc:'Use the spam classifier 3 times', pts:'+15 XP', earned:false },
+  { id:'loan_analyst', icon:'💼', title:'Loan Analyst', desc:'Run the Loan AI simulation', pts:'+20 XP', earned:false }
+];
+let simUseCount = 0;
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function nav(p) {
+  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const pg = document.getElementById('page-' + p);
+  if(pg) pg.classList.add('active');
+  const items = document.querySelectorAll('.nav-item');
+  const map = {home:0,learn:1,sim:2,game:3,quiz:4,loan:5};
+  if(items[map[p]]) items[map[p]].classList.add('active');
+
+  if(p === 'game') setTimeout(() => { initGame(); }, 50);
+  if(p === 'quiz') initQuiz();
+  if(p === 'learn') buildLearn();
+  if(p === 'loan') { setTimeout(updateLoan, 50); }
+  if(p === 'sim') buildFeatureBars();
+}
+
+// ============================================================
+// GAMIFICATION
+// ============================================================
+function getLevelInfo() {
+  for(let l of LEVELS) {
+    if(appState.pts >= l.min && appState.pts <= l.max) return l;
+  }
+  return LEVELS[LEVELS.length-1];
+}
+
+function getLevelNum() {
+  if(appState.pts < 100) return 1;
+  if(appState.pts < 250) return 2;
+  return 3;
+}
+
+function getXPProgress() {
+  const lvl = getLevelInfo();
+  if(lvl.max === Infinity) return { pct:100, cur:appState.pts-lvl.min, max:'∞' };
+  const cur = appState.pts - lvl.min;
+  const max = lvl.max - lvl.min + 1;
+  return { pct: Math.min(100, Math.round(cur/max*100)), cur, max };
+}
+
+function awardPts(n, src, badgeId) {
+  appState.pts += n;
+  appState.lvl = getLevelNum();
+
+  if(badgeId && !appState.badges.includes(badgeId)) {
+    appState.badges.push(badgeId);
+    const ach = ALL_ACHIEVEMENTS.find(a => a.id === badgeId);
+    if(ach) ach.earned = true;
+    showToast('🏅 Badge: ' + (ach ? ach.title : badgeId), n);
+    launchConfetti();
+  } else {
+    showToast('🎉 +' + n + ' XP earned!', n);
+  }
+
+  updateAllUI();
+  saveToFirestore();
+}
+
+function updateAllUI() {
+  const lvlInfo = getLevelInfo();
+  const xp = getXPProgress();
+  const lvlNum = getLevelNum();
+
+  // Home hero
+  document.getElementById('h-pts').textContent = appState.pts;
+  document.getElementById('h-lvl').textContent = lvlNum;
+  document.getElementById('h-bdg').textContent = appState.badges.length;
+  document.getElementById('h-streak').textContent = appState.streak;
+
+  // Home level bar
+  document.getElementById('home-levelname').textContent = lvlInfo.name;
+  document.getElementById('home-xplabel').textContent = xp.cur + ' / ' + xp.max + ' XP to next level';
+  document.getElementById('home-progfill').style.width = xp.pct + '%';
+  document.getElementById('home-levelchip').textContent = 'Level ' + lvlNum;
+
+  // Badges row
+  const br = document.getElementById('home-badges');
+  br.innerHTML = appState.badges.length === 0
+    ? '<span style="font-size:12px;color:var(--gray-400)">No badges yet — start learning!</span>'
+    : appState.badges.map(b => {
+        const ach = ALL_ACHIEVEMENTS.find(a => a.id === b);
+        return `<span class="badge badge-gold">${ach ? ach.icon + ' ' + ach.title : b}</span>`;
+      }).join('');
+
+  // Sidebar
+  document.getElementById('sidebar-level').textContent = lvlInfo.name + ' • Lv ' + lvlNum;
+  document.getElementById('sidebar-xp').style.width = xp.pct + '%';
+
+  // Achievements
+  buildAchievements();
+}
+
+function buildAchievements() {
+  const list = document.getElementById('achievement-list');
+  list.innerHTML = ALL_ACHIEVEMENTS.map(a => {
+    const earned = appState.badges.includes(a.id);
+    return `<div class="achievement-item">
+      <div class="achievement-icon ${earned?'earned':'locked'}">${a.icon}</div>
+      <div class="achievement-text">
+        <h4>${a.title}</h4>
+        <p>${a.desc}</p>
+      </div>
+      <div class="achievement-pts">${earned ? a.pts : '🔒'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimer = null;
+function showToast(msg, pts) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ============================================================
+// CONFETTI
+// ============================================================
+function launchConfetti() {
+  const canvas = document.getElementById('confettiCanvas');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+  const pieces = Array.from({length:120}, () => ({
+    x: Math.random() * canvas.width,
+    y: -10 - Math.random() * 40,
+    r: 4 + Math.random() * 6,
+    d: 2 + Math.random() * 3,
+    color: ['#7B1E3A','#D4A853','#3b82f6','#16a34a','#ef4444','#f59e0b'][Math.floor(Math.random()*6)],
+    tilt: Math.random() * 12 - 6,
+    tiltAngle: 0
+  }));
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    pieces.forEach(p => {
+      p.tiltAngle += 0.04;
+      p.y += p.d + Math.sin(frame*0.02) * 0.5;
+      p.x += Math.sin(frame*0.015 + p.tiltAngle) * 0.8;
+      p.tilt = Math.sin(p.tiltAngle) * 10;
+      ctx.beginPath();
+      ctx.lineWidth = p.r;
+      ctx.strokeStyle = p.color;
+      ctx.moveTo(p.x + p.tilt + p.r/3, p.y);
+      ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r/3);
+      ctx.stroke();
+    });
+    frame++;
+    if(frame < 180) requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  draw();
+}
+
+// ============================================================
+// LEARN MODULE
+// ============================================================
+const learnData = [
+  {
+    id:'ml', icon:'🤖', title:'What is Machine Learning?',
+    short:'ML lets computers learn patterns from data without explicit rules.',
+    pts:10,
+    detail:`
+      <h4>Machine Learning (ML)</h4>
+      <p>Traditional programming: you write rules → computer follows them. ML flips this: you give examples → computer learns the rules itself.</p>
+      <p><strong>Three types of ML:</strong></p>
+      <ul>
+        <li><span class="key-term">Supervised</span> Learns from labeled data (input → output pairs)</li>
+        <li><span class="key-term">Unsupervised</span> Finds patterns in unlabeled data</li>
+        <li><span class="key-term">Reinforcement</span> Learns by trial and error with rewards</li>
+      </ul>
+      <p>Real examples: Spam filters, recommendation systems, face recognition, self-driving cars.</p>
+    `
+  },
+  {
+    id:'classification', icon:'🗂️', title:'What is Classification?',
+    short:'Classification assigns data to predefined categories like spam/not-spam.',
+    pts:10,
+    detail:`
+      <h4>Classification</h4>
+      <p>A classification algorithm takes input features and predicts a discrete label or class. It draws a "decision boundary" to separate classes.</p>
+      <ul>
+        <li><span class="key-term">Binary</span> Two classes (spam vs ham, approved vs rejected)</li>
+        <li><span class="key-term">Multi-class</span> Three or more classes (cat, dog, bird)</li>
+        <li><span class="key-term">Features</span> Input variables used to make predictions</li>
+        <li><span class="key-term">Labels</span> The output category being predicted</li>
+      </ul>
+      <p>Popular algorithms: Logistic Regression, Decision Trees, Random Forest, SVM, Neural Networks.</p>
+    `
+  },
+  {
+    id:'features', icon:'🔢', title:'Features & Labels',
+    short:'Features are inputs; labels are outputs. ML maps one to the other.',
+    pts:10,
+    detail:`
+      <h4>Features & Labels</h4>
+      <p>Every ML model needs a dataset. Each row is an <strong>example</strong>, each column is a <strong>feature</strong>, and the target column is the <strong>label</strong>.</p>
+      <ul>
+        <li><span class="key-term">Feature Engineering</span> Creating good features is often more important than the algorithm</li>
+        <li><span class="key-term">Numerical features</span> Salary, age, credit score, temperature</li>
+        <li><span class="key-term">Categorical features</span> Color, city, job title (need encoding)</li>
+        <li><span class="key-term">Label</span> What you want to predict</li>
+      </ul>
+      <p>Rule of thumb: better features &gt; more data &gt; better algorithms. Feature selection is crucial!</p>
+    `
+  },
+  {
+    id:'boundary', icon:'📊', title:'Decision Boundaries',
+    short:'A decision boundary separates classes in feature space.',
+    pts:10,
+    detail:`
+      <h4>Decision Boundaries</h4>
+      <p>Imagine plotting all your data points on a graph. A decision boundary is the line (or curve) that separates one class from another.</p>
+      <ul>
+        <li><span class="key-term">Linear boundary</span> A straight line — used by logistic regression and linear SVM</li>
+        <li><span class="key-term">Non-linear</span> Curved boundaries — used by decision trees, neural nets, RBF-SVM</li>
+        <li><span class="key-term">Overfitting</span> Boundary is too complex, memorizes training data</li>
+        <li><span class="key-term">Underfitting</span> Boundary is too simple, misses the pattern</li>
+      </ul>
+      <p>In the Game tab, you manually draw a linear decision boundary to classify scatter points!</p>
+    `
+  }
+];
+
+let openLearnId = null;
+function buildLearn() {
+  const grid = document.getElementById('learn-grid');
+  grid.innerHTML = learnData.map(c => `
+    <div class="learn-card" id="lc-${c.id}" onclick="expandLearn('${c.id}')">
+      <div class="learn-card-icon">${c.icon}</div>
+      <h3>${c.title}</h3>
+      <p>${c.short}</p>
+      <div class="learn-card-footer">
+        <button class="btn btn-sm btn-primary" onclick="event.stopPropagation();expandLearn('${c.id}')">Read More</button>
+        <span class="learn-pts">+${c.pts} XP</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function expandLearn(id) {
+  const item = learnData.find(c => c.id === id);
+  const detail = document.getElementById('concept-detail');
+  if(openLearnId === id) {
+    detail.style.display = 'none';
+    openLearnId = null;
+    return;
+  }
+  openLearnId = id;
+  detail.style.display = 'block';
+  detail.innerHTML = `<div class="concept-detail">${item.detail}
+    <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="collectLearnXP('${id}')">✅ Got it! Collect +${item.pts} XP</button>
+  </div>`;
+  detail.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function collectLearnXP(id) {
+  if(appState.learnedCards.has(id)) { showToast('Already collected XP for this!'); return; }
+  appState.learnedCards.add(id);
+  const badgeId = appState.learnedCards.size === 1 ? 'ai_starter' : null;
+  awardPts(10, 'learn', badgeId);
+}
+
+// ============================================================
+// SPAM SIMULATOR
+// ============================================================
+const simState = { free:0, win:0, link:0, caps:0, len:0, sender:0 };
+const featureInfo = [
+  { key:'free', label:'"FREE" keyword', weight:2 },
+  { key:'win', label:'"WIN/PRIZE" words', weight:2 },
+  { key:'link', label:'Suspicious link', weight:2 },
+  { key:'caps', label:'All CAPS text', weight:1 },
+  { key:'len', label:'Long message', weight:1 },
+  { key:'sender', label:'Unknown sender', weight:1 }
+];
+
+function setTog(field, val) {
+  simState[field] = val;
+  // update button styles
+  const map = {
+    free: ['tf-yes','tf-no','tog-yes','tog-no'],
+    win: ['tw-yes','tw-no','tog-yes','tog-no'],
+    link: ['tl-yes','tl-no','tog-yes','tog-no'],
+    caps: ['tc-yes','tc-no','tog-yes','tog-no'],
+    len: ['tlen-s','tlen-l','tog-short','tog-long'],
+    sender: ['ts-yes','ts-no','tog-yes','tog-no']
+  };
+  const [yId, nId, yClass, nClass] = map[field];
+  document.getElementById(yId).className = 'tog-btn ' + (val ? yClass : '');
+  document.getElementById(nId).className = 'tog-btn ' + (val ? '' : (field==='len'?'tog-short':nClass));
+
+  classifySpam();
+  buildFeatureBars();
+
+  simUseCount++;
+  if(simUseCount >= 3 && !appState.badges.includes('spam_hunter')) {
+    awardPts(0, 'sim', 'spam_hunter');
+  }
+}
+
+function classifySpam() {
+  let score = 0;
+  const reasons = [];
+  featureInfo.forEach(f => {
+    if(simState[f.key]) { score += f.weight; reasons.push(f.label); }
+  });
+
+  const maxScore = 9;
+  const conf = Math.round(40 + (score / maxScore) * 55);
+
+  const box = document.getElementById('sim-result');
+  const lbl = document.getElementById('sim-label');
+  const confEl = document.getElementById('sim-conf');
+  const why = document.getElementById('sim-why');
+
+  if(score >= 4) {
+    box.className = 'result-box result-spam';
+    lbl.textContent = '🚨 SPAM DETECTED';
+    confEl.style.color = 'var(--red)';
+    confEl.textContent = 'Confidence: ' + conf + '%';
+    why.innerHTML = `<strong>Why SPAM?</strong><br>Triggered signals: <em>${reasons.join(', ')}</em>. High spam score (${score}/${maxScore}). These features strongly correlate with spam messages in training data.`;
+  } else if(score >= 2) {
+    box.className = 'result-box';
+    box.style.background = 'var(--amber-l)'; box.style.border = '2px solid var(--amber-b)';
+    lbl.style.color = 'var(--amber)'; lbl.textContent = '⚠️ SUSPICIOUS';
+    confEl.style.color = 'var(--amber)';
+    confEl.textContent = 'Confidence: ' + (100-conf) + '% not spam';
+    why.innerHTML = `<strong>Why suspicious?</strong><br>Some signals present: <em>${reasons.join(', ')}</em>. Could be borderline — a Bayesian classifier might flag this for review.`;
+  } else {
+    box.className = 'result-box result-ham';
+    box.style.background = ''; box.style.border = '';
+    lbl.style.color = 'var(--green)'; lbl.textContent = '✅ NOT SPAM';
+    confEl.style.color = 'var(--green)';
+    confEl.textContent = 'Confidence: ' + (100 - conf + 40) + '%';
+    why.innerHTML = reasons.length
+      ? `<strong>Why not spam?</strong><br>Minor signal detected: <em>${reasons.join(', ')}</em>, but not enough to classify as spam. Score: ${score}/${maxScore}.`
+      : '<strong>Why not spam?</strong><br>No suspicious signals found. All features point to a legitimate message.';
+  }
+
+  // update score dots
+  const dots = document.querySelectorAll('.score-dot');
+  dots.forEach((d,i) => {
+    const dotScore = i + 1;
+    d.classList.remove('active','danger');
+    if(dotScore <= score) d.classList.add(score >= 4 ? 'danger' : 'active');
+  });
+  document.getElementById('score-txt').textContent = score + ' / 9 signal weight';
+}
+
+function buildFeatureBars() {
+  const container = document.getElementById('feature-bars');
+  container.innerHTML = featureInfo.map(f => {
+    const active = simState[f.key];
+    const pct = active ? (f.weight / 2 * 100) : 10;
+    return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+      <span style="font-size:11.5px;color:var(--gray-600);width:110px;flex-shrink:0">${f.label}</span>
+      <div style="flex:1;height:6px;background:var(--gray-100);border-radius:99px;overflow:hidden">
+        <div style="width:${active?100:8}%;height:100%;background:${active?'var(--maroon)':'var(--gray-200)'};border-radius:99px;transition:all .3s ease"></div>
+      </div>
+      <span style="font-size:11px;color:${active?'var(--maroon)':'var(--gray-400)'};width:28px;text-align:right">${active?'+'+f.weight:'0'}</span>
+    </div>`;
+  }).join('');
+}
+
+function lockSimAnswer() {
+  if(appState.simLocked) { showToast('Already earned XP for this session!'); return; }
+  appState.simLocked = true;
+  awardPts(20, 'sim', null);
+}
+
+// ============================================================
+// GAME — DECISION BOUNDARY
+// ============================================================
+let gamePoints = [];
+const TOTAL_PTS = 16;
+
+function generateGamePoints() {
+  gamePoints = [];
+  // Class A (blue) — left cluster ~25-45%
+  for(let i=0; i<8; i++) {
+    gamePoints.push({ x: 15 + Math.random()*30, y: 10+Math.random()*80, c:0 });
+  }
+  // Class B (red) — right cluster ~60-85%
+  for(let i=0; i<8; i++) {
+    gamePoints.push({ x: 60 + Math.random()*30, y: 10+Math.random()*80, c:1 });
+  }
+}
+
+let currentBoundary = 50;
+
+function initGame() {
+  if(gamePoints.length === 0) generateGamePoints();
+  currentBoundary = 50;
+  document.getElementById('boundary-slider').value = 50;
+  document.getElementById('game-msg').className = 'game-msg';
+  drawGame();
+}
+
+function resetGame() {
+  generateGamePoints();
+  initGame();
+}
+
+function onBoundaryChange(val) {
+  currentBoundary = parseInt(val);
+  document.getElementById('boundary-val').textContent = 'x = ' + val + '%';
+  drawGame();
+}
+
+function drawGame() {
+  const canvas = document.getElementById('gameCanvas');
+  if(!canvas) return;
+  const W = canvas.offsetWidth || 600;
+  canvas.width = W; canvas.height = 320;
+  const ctx = canvas.getContext('2d');
+
+  // background grid
+  ctx.fillStyle = '#fafafa'; ctx.fillRect(0,0,W,320);
+  ctx.strokeStyle = '#e5e5e5'; ctx.lineWidth = 1;
+  for(let x=0;x<W;x+=W/10) { ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,320);ctx.stroke(); }
+  for(let y=0;y<320;y+=32) { ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke(); }
+
+  const bx = currentBoundary / 100 * W;
+
+  // shaded regions
+  ctx.fillStyle = 'rgba(59,130,246,0.04)'; ctx.fillRect(0,0,bx,320);
+  ctx.fillStyle = 'rgba(239,68,68,0.04)'; ctx.fillRect(bx,0,W-bx,320);
+
+  // boundary line
+  ctx.strokeStyle = 'var(--maroon, #7B1E3A)';
+  ctx.lineWidth = 2.5; ctx.setLineDash([8,5]);
+  ctx.beginPath(); ctx.moveTo(bx,0); ctx.lineTo(bx,320); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // label the boundary
+  ctx.fillStyle = '#7B1E3A'; ctx.font = 'bold 11px DM Sans, sans-serif';
+  ctx.fillText('Boundary', bx+6, 16);
+
+  // region labels
+  ctx.font = '600 12px DM Sans,sans-serif';
+  ctx.fillStyle = 'rgba(59,130,246,0.4)'; ctx.fillText('← Class A', 8, 310);
+  ctx.fillStyle = 'rgba(239,68,68,0.4)'; ctx.fillText('Class B →', bx+8, 310);
+
+  // count misclassified
+  let wrong = 0;
+  gamePoints.forEach(p => {
+    const px = p.x/100*W, py = p.y/100*320;
+    const predictedRight = px >= bx;
+    const correct = (p.c===0 && !predictedRight) || (p.c===1 && predictedRight);
+    if(!correct) wrong++;
+
+    // draw point
+    ctx.beginPath();
+    ctx.arc(px,py,7,0,Math.PI*2);
+    ctx.fillStyle = p.c===0 ? '#3b82f6' : '#ef4444';
+    ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+
+    // misclassification X
+    if(!correct) {
+      ctx.strokeStyle = '#1a1a1a'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(px-5,py-5); ctx.lineTo(px+5,py+5); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(px+5,py-5); ctx.lineTo(px-5,py+5); ctx.stroke();
+    }
+  });
+
+  document.getElementById('misc-count').textContent = wrong;
+  drawAccuracyRing(wrong);
+}
+
+function drawAccuracyRing(wrong) {
+  const acc = Math.round(((TOTAL_PTS-wrong)/TOTAL_PTS)*100);
+  const canvas = document.getElementById('accuracyCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const cx=50, cy=50, r=38;
+  ctx.clearRect(0,0,100,100);
+
+  // track
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.strokeStyle = '#f0e0e5'; ctx.lineWidth = 8; ctx.stroke();
+
+  // fill
+  const angle = (acc/100)*Math.PI*2 - Math.PI/2;
+  ctx.beginPath(); ctx.arc(cx,cy,r,-Math.PI/2,angle);
+  ctx.strokeStyle = acc>=80?'#16a34a':acc>=60?'#d97706':'#dc2626';
+  ctx.lineWidth = 8; ctx.lineCap='round'; ctx.stroke();
+
+  // text
+  ctx.fillStyle = '#7B1E3A'; ctx.font = 'bold 16px Syne,sans-serif';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(acc+'%',cx,cy);
+}
+
+function checkBoundary() {
+  const wrong = gamePoints.filter(p => {
+    const px = p.x/100;
+    return (p.c===0 && px >= currentBoundary/100) || (p.c===1 && px < currentBoundary/100);
+  }).length;
+  const msg = document.getElementById('game-msg');
+  if(wrong === 0) {
+    msg.className = 'game-msg show success';
+    msg.textContent = '🔥 Model trained successfully! Perfect 100% accuracy!';
+    if(!appState.badges.includes('model_trainer')) {
+      awardPts(20, 'game', 'model_trainer');
+    } else {
+      awardPts(10, 'game', null);
+    }
+    launchConfetti();
+  } else {
+    msg.className = 'game-msg show fail';
+    msg.textContent = '❌ ' + wrong + ' point' + (wrong>1?'s':'')+' misclassified. Adjust the boundary!';
+  }
+}
+
+// ============================================================
+// QUIZ
+// ============================================================
+const quizData = [
+  {
+    q:'What does "ML" stand for in the context of AI?',
+    opts:['Meta Learning','Machine Learning','Model Logic','Max Layer'],
+    correct:1,
+    explain:'ML stands for Machine Learning — the study of algorithms that improve automatically through experience.'
+  },
+  {
+    q:'Which of these is a classification problem?',
+    opts:['Predicting next month\'s rainfall in mm','Estimating a house\'s sale price','Detecting whether an email is spam or not spam','Forecasting a company\'s revenue'],
+    correct:2,
+    explain:'Classification predicts a discrete category (spam/not-spam). Regression predicts a continuous number like price or rainfall.'
+  },
+  {
+    q:'What is a "feature" in machine learning?',
+    opts:['A bug in the training code','An input variable used for prediction','The model\'s output prediction','A type of neural network layer'],
+    correct:1,
+    explain:'Features are the input variables (columns) fed into the model. Examples: age, salary, message length, credit score.'
+  },
+  {
+    q:'What is overfitting?',
+    opts:['The model trains too slowly','The model performs well on training data but poorly on new data','The model has too few parameters','The model never finishes training'],
+    correct:1,
+    explain:'Overfitting means the model memorized the training data but fails to generalize. It has learned noise, not signal.'
+  },
+  {
+    q:'In supervised learning, what are "labels"?',
+    opts:['Column headers in the CSV file','The hyperparameters of the model','The correct output values used during training','Variable names in the code'],
+    correct:2,
+    explain:'Labels are the correct answers provided during training (e.g., "spam"/"not spam"). The model learns to predict these.'
+  }
+];
+
+let currentQ = 0;
+let quizAnswers = {};
+let quizSubmitted = false;
+
+function initQuiz() {
+  if(quizSubmitted) return;
+  currentQ = 0;
+  quizAnswers = {};
+  buildQuizUI();
+}
+
+function buildQuizUI() {
+  // progress pips
+  const prog = document.getElementById('quiz-progress');
+  prog.innerHTML = quizData.map((_,i) =>
+    `<div class="quiz-pip ${i<currentQ?'done':i===currentQ?'active':''}"></div>`
+  ).join('');
+
+  // question
+  const q = quizData[currentQ];
+  const letters = ['A','B','C','D'];
+  document.getElementById('quiz-body').innerHTML = `
+    <div class="quiz-card">
+      <div class="quiz-num">Question ${currentQ+1} of ${quizData.length}</div>
+      <div class="quiz-q">${q.q}</div>
+      <div class="options-grid">
+        ${q.opts.map((opt,i) => `
+          <button class="opt-btn ${quizAnswers[currentQ]===i?'selected':''}" onclick="selectOpt(${i})" data-q="${currentQ}" data-i="${i}">
+            <span class="opt-letter">${letters[i]}</span>
+            ${opt}
+          </button>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  // nav buttons
+  const nav = document.getElementById('quiz-nav');
+  nav.innerHTML = `
+    <button class="btn btn-secondary btn-sm" onclick="quizPrev()" ${currentQ===0?'disabled style="opacity:.4"':''}>← Previous</button>
+    <span style="font-size:13px;color:var(--gray-400)">${currentQ+1}/${quizData.length}</span>
+    ${currentQ < quizData.length-1
+      ? `<button class="btn btn-primary btn-sm" onclick="quizNext()">Next →</button>`
+      : `<button class="btn btn-gold" onclick="submitQuiz()">Submit Quiz 🎯</button>`
+    }
+  `;
+}
+
+function selectOpt(i) {
+  quizAnswers[currentQ] = i;
+  document.querySelectorAll('.opt-btn').forEach((b,idx) => {
+    b.className = 'opt-btn' + (idx===i?' selected':'');
+  });
+  document.querySelectorAll('.opt-letter').forEach((l,idx) => {
+    // handled by CSS class above
+  });
+}
+
+function quizNext() {
+  if(currentQ < quizData.length-1) { currentQ++; buildQuizUI(); }
+}
+function quizPrev() {
+  if(currentQ > 0) { currentQ--; buildQuizUI(); }
+}
+
+function submitQuiz() {
+  let correct = 0;
+  quizData.forEach((_,i) => { if(quizAnswers[i] === quizData[i].correct) correct++; });
+  quizSubmitted = true;
+  document.getElementById('quiz-container').style.display = 'none';
+  const pts = correct * 6;
+  const grade = correct >= 4 ? '🏆 Excellent!' : correct >= 3 ? '👍 Good job!' : '📖 Keep learning!';
+
+  document.getElementById('quiz-result').style.display = 'block';
+  document.getElementById('quiz-result').innerHTML = `
+    <div class="quiz-result-card">
+      <div class="quiz-score-circle"><span>${correct}/${quizData.length}</span></div>
+      <h3>${grade}</h3>
+      <p>You answered ${correct} out of ${quizData.length} questions correctly and earned ${pts} XP.</p>
+      <div class="quiz-breakdown">
+        <div class="quiz-break-item"><div class="quiz-break-num">${correct}</div><div class="quiz-break-lbl">Correct</div></div>
+        <div class="quiz-break-item"><div class="quiz-break-num">${quizData.length-correct}</div><div class="quiz-break-lbl">Wrong</div></div>
+        <div class="quiz-break-item"><div class="quiz-break-num">+${pts}</div><div class="quiz-break-lbl">XP Earned</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+        ${quizData.map((q,i)=>`
+          <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:12px;text-align:left">
+            <div style="font-size:12px;margin-bottom:5px;opacity:.7">Q${i+1}: ${q.q}</div>
+            <div style="font-size:12px;color:${quizAnswers[i]===q.correct?'#86efac':'#fca5a5'}">
+              ${quizAnswers[i]===q.correct?'✅':'❌'} Your answer: ${q.opts[quizAnswers[i]??-1]||'No answer'}
+            </div>
+            ${quizAnswers[i]!==q.correct?`<div style="font-size:12px;color:#86efac;margin-top:3px">✓ Correct: ${q.opts[q.correct]}</div>`:''}
+            <div style="font-size:11.5px;opacity:.6;margin-top:5px;line-height:1.5">${q.explain}</div>
+          </div>
+        `).join('')}
+      </div>
+      <button class="btn btn-gold btn-lg" onclick="retakeQuiz()">🔄 Retake Quiz</button>
+    </div>
+  `;
+
+  const badgeId = correct >= 4 ? 'quiz_champ' : null;
+  awardPts(pts, 'quiz', badgeId);
+  if(correct >= 4) launchConfetti();
+}
+
+function retakeQuiz() {
+  quizSubmitted = false;
+  document.getElementById('quiz-container').style.display = 'block';
+  document.getElementById('quiz-result').style.display = 'none';
+  quizAnswers = {};
+  currentQ = 0;
+  buildQuizUI();
+}
+
+// ============================================================
+// LOAN AI
+// ============================================================
+function fmt(n) {
+  return '₹' + Number(n).toLocaleString('en-IN');
+}
+
+function updateLoan() {
+  const sal = parseInt(document.getElementById('loan-salary').value);
+  const cred = parseInt(document.getElementById('loan-credit').value);
+  const amt = parseInt(document.getElementById('loan-amount').value);
+  const emp = parseInt(document.getElementById('loan-emp').value);
+
+  document.getElementById('sal-val').textContent = fmt(sal);
+  document.getElementById('cred-val').textContent = cred;
+  document.getElementById('loan-val').textContent = fmt(amt);
+  document.getElementById('emp-val').textContent = emp + ' yr' + (emp!==1?'s':'');
+
+  // rule-based logic
+  const debtRatio = amt / (sal * 12);
+  const salOk = sal >= 30000;
+  const credOk = cred >= 650;
+  const empOk = emp >= 1;
+  const ratioOk = debtRatio <= 5;
+
+  const score = [salOk,credOk,empOk,ratioOk].filter(Boolean).length;
+  const riskPct = Math.round((1 - score/4)*100);
+
+  // factors
+  const factors = [
+    { icon:salOk?'✅':'❌', label:`Salary ${fmt(sal)} (min ₹30k)`, ok:salOk },
+    { icon:credOk?'✅':'❌', label:`Credit score ${cred} (min 650)`, ok:credOk },
+    { icon:empOk?'✅':'❌', label:`Employment ${emp} yr${emp!==1?'s':''} (min 1 yr)`, ok:empOk },
+    { icon:ratioOk?'✅':'⚠️', label:`Debt-to-income: ${debtRatio.toFixed(1)}x (max 5x)`, ok:ratioOk }
+  ];
+  document.getElementById('factors-list').innerHTML = factors.map(f =>
+    `<div class="factor-item ${f.ok?'factor-pass':'factor-fail'}">
+      <span class="factor-icon">${f.icon}</span>${f.label}
+    </div>`
+  ).join('');
+
+  // verdict
+  const verdict = document.getElementById('loan-verdict');
+  let vClass, vIcon, vLabel, vSub;
+  if(score === 4) {
+    vClass='loan-approved'; vIcon='✅'; vLabel='APPROVED'; vSub='All criteria met. Low risk applicant.';
+  } else if(score >= 2) {
+    vClass='loan-review'; vIcon='⚠️'; vLabel='MANUAL REVIEW'; vSub='Some criteria borderline. Needs review.';
+  } else {
+    vClass='loan-rejected'; vIcon='❌'; vLabel='REJECTED'; vSub='Key criteria not met. Insufficient profile.';
+  }
+  verdict.className = 'loan-verdict ' + vClass;
+  verdict.innerHTML = `<div class="verdict-icon">${vIcon}</div><div class="verdict-label">${vLabel}</div><div class="verdict-sub">${vSub}</div>`;
+
+  // risk bar
+  const bar = document.getElementById('risk-bar');
+  bar.style.width = riskPct + '%';
+  bar.className = riskPct<=33?'risk-low':riskPct<=66?'risk-med':'risk-high';
+  document.getElementById('risk-pct').textContent = riskPct + '% risk';
+
+  // explanation
+  const failedItems = factors.filter(f=>!f.ok).map(f=>f.label);
+  document.getElementById('loan-explanation').innerHTML = failedItems.length
+    ? `<strong>Decision reasoning:</strong> The AI flagged ${failedItems.length} issue(s): <em>${failedItems.join('; ')}</em>. To improve the outcome, address the highlighted criteria.`
+    : '<strong>Decision reasoning:</strong> All four key factors pass — salary sufficient, credit score healthy, employment stable, and debt ratio within acceptable range. The model approves with high confidence.';
+}
+
+function lockLoan() {
+  if(appState.loanLocked) { showToast('Already earned XP for this session!'); return; }
+  appState.loanLocked = true;
+  awardPts(20, 'loan', 'loan_analyst');
+}
+
+// ============================================================
+// AI ASSISTANT TIPS
+// ============================================================
+const tips = [
+  '🧪 In Spam Sim: turn ON "FREE" + "suspicious link" to see SPAM detected!',
+  '🎮 In the Game: aim for boundary ~x=52% to perfectly separate all 16 points.',
+  '🧠 Quiz tip: supervised learning uses LABELED data (input+output pairs).',
+  '🌍 Loan AI: a credit score above 700 and salary above ₹50k usually gets approved.',
+  '📚 Features are inputs; Labels are outputs. Quality features matter most!',
+  '🔥 Overfitting = memorizing, not learning. Keep it simple!',
+  '💡 Decision boundaries can be linear (a line) or non-linear (a curve).'
+];
+let tipIdx = 0;
+function nextTip() {
+  tipIdx = (tipIdx+1) % tips.length;
+  document.getElementById('ai-tip-text').textContent = tips[tipIdx];
+}
+function toggleHelper() {
+  const p = document.getElementById('ai-popup');
+  p.classList.toggle('open');
+  document.getElementById('ai-tip-text').textContent = tips[tipIdx];
+}
+
+// ============================================================
+// FIREBASE SYNC
+// ============================================================
+async function saveToFirestore() {
+  if(!db) return;
+  try {
+    await db.collection('users').doc(userId).set({
+      pts: appState.pts,
+      lvl: appState.lvl,
+      badges: appState.badges,
+      streak: appState.streak,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch(e) { console.warn('Firestore save failed:', e.message); }
+}
+
+async function loadUserFromFirestore() {
+  if(!db) return;
+  try {
+    const doc = await db.collection('users').doc(userId).get();
+    if(doc.exists) {
+      const d = doc.data();
+      appState.pts = d.pts || 0;
+      appState.lvl = d.lvl || 1;
+      appState.badges = d.badges || [];
+      appState.streak = d.streak || 0;
+      ALL_ACHIEVEMENTS.forEach(a => { if(appState.badges.includes(a.id)) a.earned = true; });
+      updateAllUI();
+      showToast('☁️ Progress loaded from cloud!');
+    }
+  } catch(e) { console.warn('Firestore load failed:', e.message); }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+buildLearn();
+buildFeatureBars();
+updateAllUI();
+buildAchievements();
+document.getElementById('firebase-banner').style.display =
+  (firebaseConfig.apiKey === 'YOUR_API_KEY') ? 'flex' : 'none';
+
+// init loan sliders display
+setTimeout(() => {
+  if(document.getElementById('loan-salary')) updateLoan();
+}, 100);
+
+console.log('%c AIML Playground 🎮', 'color:#7B1E3A;font-size:18px;font-weight:bold');
+console.log('%c Replace firebaseConfig with your project details to enable cloud sync.', 'color:#888');
+</script>
+</body>
+</html>
